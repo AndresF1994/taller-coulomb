@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taller Interactivo — Ley de Coulomb</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --correct: #10b981;
+    --wrong: #ef4444;
+    --warn: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.05) 0%, transparent 50%);
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 50%, #0d2233 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      90deg, transparent, transparent 80px,
+      rgba(0,212,255,0.03) 80px, rgba(0,212,255,0.03) 81px
+    ),
+    repeating-linear-gradient(
+      0deg, transparent, transparent 80px,
+      rgba(0,212,255,0.03) 80px, rgba(0,212,255,0.03) 81px
+    );
+  }
+  .hero-inner { max-width: 900px; margin: 0 auto; position: relative; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent); font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 2px; padding: 4px 12px;
+    border-radius: 2px; margin-bottom: 1rem; text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    font-weight: 700; line-height: 1.1;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,212,255,0.3);
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-formula {
+    margin-top: 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem; color: var(--text-dim);
+    background: rgba(0,212,255,0.05); border: 1px solid var(--border);
+    display: inline-block; padding: 8px 16px; border-radius: 4px;
+  }
+  .hero-formula b { color: var(--accent); }
+
+  /* ── NAME INPUT ── */
+  .name-section {
+    max-width: 900px; margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+  .name-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .name-card label {
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    color: var(--accent); letter-spacing: 2px; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .name-card input {
+    flex: 1; min-width: 200px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    padding: 0.6rem 1rem; border-radius: 4px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-card input:focus { border-color: var(--accent); }
+  .score-display {
+    font-family: 'Space Mono', monospace;
+    background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);
+    padding: 0.5rem 1.2rem; border-radius: 4px;
+    white-space: nowrap;
+  }
+  .score-display .num { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    max-width: 900px; margin: 0 auto 1.5rem;
+    padding: 0 1.5rem;
+  }
+  .progress-bar-bg {
+    height: 4px; background: var(--surface2);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    border-radius: 2px; transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    color: var(--text-dim); margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    max-width: 900px; margin: 2rem auto 1rem;
+    padding: 0 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 2px;
+  }
+  .tag-a { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.4); }
+  .tag-b { background: rgba(255,107,53,0.15); color: #fb923c; border: 1px solid rgba(255,107,53,0.4); }
+  .section-title { font-size: 1rem; font-weight: 500; color: var(--text-dim); }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── QUESTION CARDS ── */
+  .questions-wrap { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: border-color 0.3s, transform 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .q-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--border); transition: background 0.3s;
+  }
+  .q-card.correct::before { background: var(--correct); }
+  .q-card.wrong::before { background: var(--wrong); }
+  .q-card.correct { border-color: rgba(16,185,129,0.3); }
+  .q-card.wrong { border-color: rgba(239,68,68,0.3); }
+
+  .q-meta {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+    padding: 2px 8px; border-radius: 2px;
+  }
+  .q-pts {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+  .q-type-badge {
+    font-size: 0.65rem; font-weight: 500;
+    padding: 2px 8px; border-radius: 20px; margin-left: auto;
+  }
+  .type-teoria { background: rgba(124,58,237,0.2); color: #a78bfa; }
+  .type-calc { background: rgba(255,107,53,0.15); color: #fb923c; }
+
+  .q-text {
+    font-size: 0.95rem; line-height: 1.6; color: var(--text);
+    margin-bottom: 1rem;
+  }
+  .q-text .formula {
+    font-family: 'Space Mono', monospace;
+    background: rgba(0,212,255,0.08); color: var(--accent);
+    padding: 2px 6px; border-radius: 3px; font-size: 0.85em;
+  }
+
+  /* Theory textarea */
+  .theory-input {
+    width: 100%;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    padding: 0.75rem 1rem; border-radius: 4px; resize: vertical;
+    min-height: 80px; outline: none; transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  .theory-input:focus { border-color: var(--accent); }
+
+  /* Numeric input */
+  .num-wrap { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .num-input {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Space Mono', monospace; font-size: 1rem;
+    padding: 0.6rem 1rem; border-radius: 4px; width: 160px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .num-input:focus { border-color: var(--accent); }
+  .num-unit {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--text-dim);
+  }
+
+  /* Buttons */
+  .btn-check {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 8px 18px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--accent); color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    transition: all 0.2s; margin-top: 0.75rem;
+  }
+  .btn-check:hover { background: rgba(0,212,255,0.15); }
+  .btn-check:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Feedback */
+  .feedback {
+    display: none; margin-top: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 4px;
+    font-size: 0.875rem; line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok {
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+    color: #6ee7b7;
+  }
+  .feedback.err {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+  }
+  .feedback .step { font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+
+  /* Theory accepted always green */
+  .feedback.teoria-ok {
+    background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+    color: #6ee7b7;
+  }
+
+  /* ── SUBMIT BUTTON ── */
+  .submit-wrap {
+    max-width: 900px; margin: 0 auto 2rem;
+    padding: 0 1.5rem; text-align: center;
+  }
+  .btn-submit {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 14px 40px; border-radius: 4px; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    border: none; color: #fff; font-weight: 700;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 24px rgba(0,212,255,0.2);
+  }
+  .btn-submit:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* ── RESULT PANEL ── */
+  .result-panel {
+    display: none; max-width: 900px; margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+  }
+  .result-panel.show { display: block; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 2rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center top, rgba(0,212,255,0.06), transparent 60%);
+  }
+  .result-grade {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: 700; color: var(--accent);
+    text-shadow: 0 0 40px rgba(0,212,255,0.4);
+    line-height: 1;
+  }
+  .result-label { color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem; }
+  .result-bar {
+    height: 8px; background: var(--surface2); border-radius: 4px;
+    margin: 1.5rem auto; max-width: 400px; overflow: hidden;
+  }
+  .result-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .result-code {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 4px; color: var(--text-dim);
+    margin-top: 1rem; display: inline-block; word-break: break-all;
+  }
+  .result-code b { color: var(--accent); }
+
+  /* ── TEACHER PANEL ── */
+  .teacher-section {
+    max-width: 900px; margin: 0 auto 4rem;
+    padding: 0 1.5rem;
+  }
+  .teacher-toggle {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 10px 20px; border-radius: 4px; cursor: pointer;
+    background: transparent; border: 1px solid var(--accent2);
+    color: var(--accent2); transition: all 0.2s;
+  }
+  .teacher-toggle:hover { background: rgba(255,107,53,0.1); }
+  .teacher-panel { display: none; margin-top: 1rem; }
+  .teacher-panel.show { display: block; }
+  .teacher-pin {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .teacher-pin label {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    color: var(--accent2); letter-spacing: 1px;
+  }
+  .teacher-pin input {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Space Mono', monospace; font-size: 1rem;
+    padding: 0.5rem 1rem; border-radius: 4px; width: 120px; outline: none;
+    letter-spacing: 4px; text-align: center;
+  }
+  .btn-unlock {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    background: rgba(255,107,53,0.1); border: 1px solid var(--accent2);
+    color: var(--accent2); transition: all 0.2s;
+  }
+  .btn-unlock:hover { background: rgba(255,107,53,0.2); }
+
+  .grades-table-wrap { display: none; }
+  .grades-table-wrap.show { display: block; }
+  .grades-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.875rem;
+    background: var(--surface); border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .grades-table th {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 1px; text-transform: uppercase;
+    background: var(--surface2); color: var(--text-dim);
+    padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .grades-table td {
+    padding: 10px 14px; border-bottom: 1px solid rgba(30,58,95,0.5);
+    color: var(--text);
+  }
+  .grades-table tr:last-child td { border-bottom: none; }
+  .grade-chip {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .grade-high { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .grade-mid { background: rgba(245,158,11,0.15); color: #fcd34d; }
+  .grade-low { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+  .btn-download {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 1px; padding: 8px 18px; border-radius: 4px; cursor: pointer;
+    background: rgba(16,185,129,0.1); border: 1px solid var(--correct);
+    color: var(--correct); transition: all 0.2s; margin-top: 1rem;
+  }
+  .btn-download:hover { background: rgba(16,185,129,0.2); }
+
+  .empty-table {
+    text-align: center; padding: 2rem; color: var(--text-dim);
+    font-size: 0.875rem; font-style: italic;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .hero { padding: 1.5rem 1rem; }
+    .q-card { padding: 1.1rem; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .q-card { animation: fadeSlide 0.4s ease both; }
+  .q-card:nth-child(1)  { animation-delay: 0.05s; }
+  .q-card:nth-child(2)  { animation-delay: 0.10s; }
+  .q-card:nth-child(3)  { animation-delay: 0.15s; }
+  .q-card:nth-child(4)  { animation-delay: 0.20s; }
+  .q-card:nth-child(5)  { animation-delay: 0.25s; }
+
+  .particle {
+    position: fixed; pointer-events: none; z-index: 9999;
+    width: 6px; height: 6px; border-radius: 50%;
+    animation: particle-up 0.8s ease-out forwards;
+  }
+  @keyframes particle-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">⚡ Física — Electrostática</div>
+    <h1>Taller Interactivo<br><span>Ley de Coulomb</span></h1>
+    <div class="hero-formula">
+      <b>F</b> = k · |q₁ · q₂| / r² &nbsp;|&nbsp; k = 9×10⁹ N·m²/C² &nbsp;|&nbsp; 1 μC = 10⁻⁶ C &nbsp;|&nbsp; 1 nC = 10⁻⁹ C
+    </div>
+  </div>
+</div>
+
+<!-- NAME + SCORE -->
+<div class="name-section">
+  <div class="name-card">
+    <label>// Estudiante</label>
+    <input type="text" id="studentName" placeholder="Escribe tu nombre completo..." />
+    <div class="score-display">Puntaje: <span class="num" id="scoreDisplay">0</span> / 20</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span id="progressLabel">0 de 20 respondidas</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
+
+<!-- SECTION A -->
+<div class="section-header">
+  <span class="section-tag tag-a">Sección A</span>
+  <span class="section-title">Teoría — 4 preguntas × 1 punto</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="questions-wrap" id="sectionA">
+
+  <!-- Q1 -->
+  <div class="q-card" id="card-1">
+    <div class="q-meta">
+      <span class="q-num">01</span>
+      <span class="q-pts">1 pt</span>
+      <span class="q-type-badge type-teoria">Teoría</span>
+    </div>
+    <div class="q-text">Enuncia la Ley de Coulomb con tus propias palabras e identifica cada variable de la fórmula <span class="formula">F = k·|q₁·q₂|/r²</span>.</div>
+    <textarea class="theory-input" id="q1" rows="3" placeholder="Escribe tu respuesta aquí..."></textarea>
+    <button class="btn-check" onclick="checkTheory(1)">▶ Verificar</button>
+    <div class="feedback" id="fb-1"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="q-card" id="card-2">
+    <div class="q-meta">
+      <span class="q-num">02</span>
+      <span class="q-pts">1 pt</span>
+      <span class="q-type-badge type-teoria">Teoría</span>
+    </div>
+    <div class="q-text">Explica la diferencia entre fuerza eléctrica <b>atractiva</b> y <b>repulsiva</b>. ¿De qué depende que sea una u otra?</div>
+    <textarea class="theory-input" id="q2" rows="3" placeholder="Escribe tu respuesta aquí..."></textarea>
+    <button class="btn-check" onclick="checkTheory(2)">▶ Verificar</button>
+    <div class="feedback" id="fb-2"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="q-card" id="card-3">
+    <div class="q-meta">
+      <span class="q-num">03</span>
+      <span class="q-pts">1 pt</span>
+      <span class="q-type-badge type-teoria">Teoría</span>
+    </div>
+    <div class="q-text">¿Qué ocurre con la fuerza eléctrica si la distancia entre dos cargas se <b>triplica</b>? Justifica usando la fórmula.</div>
+    <textarea class="theory-input" id="q3" rows="3" placeholder="Escribe tu respuesta aquí..."></textarea>
+    <button class="btn-check" onclick="checkTheory(3)">▶ Verificar</button>
+    <div class="feedback" id="fb-3"></div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="q-card" id="card-4">
+    <div class="q-meta">
+      <span class="q-num">04</span>
+      <span class="q-pts">1 pt</span>
+      <span class="q-type-badge type-teoria">Teoría</span>
+    </div>
+    <div class="q-text">Menciona <b>dos semejanzas</b> y <b>una diferencia</b> entre la Ley de Coulomb y la Ley de Gravitación Universal de Newton.</div>
+    <textarea class="theory-input" id="q4" rows="3" placeholder="Escribe tu respuesta aquí..."></textarea>
+    <button class="btn-check" onclick="checkTheory(4)">▶ Verificar</button>
+    <div class="feedback" id="fb-4"></div>
+  </div>
+
+</div>
+
+<!-- SECTION B -->
+<div class="section-header">
+  <span class="section-tag tag-b">Sección B</span>
+  <span class="section-title">Problemas Matemáticos — 16 preguntas × 1 punto</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="questions-wrap" id="sectionB">
+
+  <!-- SUBSECTION: Cálculo directo -->
+  <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;padding-left:4px;">▸ Cálculo directo de fuerza eléctrica</div>
+
+  <!-- Q5 -->
+  <div class="q-card" id="card-5">
+    <div class="q-meta"><span class="q-num">05</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Cálculo</span></div>
+    <div class="q-text">Dos cargas <span class="formula">q₁ = +4 μC</span> y <span class="formula">q₂ = +4 μC</span> están separadas <span class="formula">r = 0.2 m</span>. Calcula la fuerza eléctrica e indica si es atractiva o repulsiva.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q5" placeholder="0.0" step="0.01">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(5, 3.6, 0.1, '(9×10⁹ × 4×10⁻⁶ × 4×10⁻⁶) / (0.2)² = 144×10⁻³ / 0.04 = 3.6 N — Repulsiva (mismo signo)')">▶ Verificar</button>
+    <div class="feedback" id="fb-5"></div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="q-card" id="card-6">
+    <div class="q-meta"><span class="q-num">06</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Cálculo</span></div>
+    <div class="q-text">Calcula la fuerza entre <span class="formula">q₁ = +6 μC</span> y <span class="formula">q₂ = −3 μC</span> separadas por <span class="formula">r = 0.5 m</span>.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q6" placeholder="0.0" step="0.001">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(6, 0.648, 0.01, '(9×10⁹ × 6×10⁻⁶ × 3×10⁻⁶) / (0.5)² = 162×10⁻³ / 0.25 = 0.648 N — Atractiva (signos opuestos)')">▶ Verificar</button>
+    <div class="feedback" id="fb-6"></div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="q-card" id="card-7">
+    <div class="q-meta"><span class="q-num">07</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Cálculo</span></div>
+    <div class="q-text">Dos cargas <span class="formula">q₁ = +2 nC</span> y <span class="formula">q₂ = +5 nC</span> se encuentran a <span class="formula">r = 0.1 m</span>. ¿Cuál es la magnitud de la fuerza?</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q7" placeholder="0.000000" step="0.000001">
+      <span class="num-unit">N (o μN)</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(7, 0.000009, 0.0000005, '(9×10⁹ × 2×10⁻⁹ × 5×10⁻⁹) / (0.1)² = 90×10⁻⁹ / 0.01 = 9×10⁻⁶ N = 0.000009 N — Repulsiva')">▶ Verificar</button>
+    <div class="feedback" id="fb-7"></div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="q-card" id="card-8">
+    <div class="q-meta"><span class="q-num">08</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Cálculo</span></div>
+    <div class="q-text">Una carga <span class="formula">q₁ = −8 μC</span> y otra <span class="formula">q₂ = −8 μC</span> separadas <span class="formula">r = 0.4 m</span>. Calcula la fuerza e indica su dirección.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q8" placeholder="0.0" step="0.01">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(8, 3.6, 0.1, '(9×10⁹ × 8×10⁻⁶ × 8×10⁻⁶) / (0.4)² = 576×10⁻³ / 0.16 = 3.6 N — Repulsiva (mismo signo negativo)')">▶ Verificar</button>
+    <div class="feedback" id="fb-8"></div>
+  </div>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin:1.5rem 0 1rem;padding-left:4px;">▸ Despeje de variables</div>
+
+  <!-- Q9 -->
+  <div class="q-card" id="card-9">
+    <div class="q-meta"><span class="q-num">09</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Despeje</span></div>
+    <div class="q-text">La fuerza eléctrica entre dos cargas iguales <span class="formula">q</span> es de <span class="formula">1.8 N</span> cuando están separadas <span class="formula">r = 0.1 m</span>. Calcula el valor de <b>q</b> en μC.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q9" placeholder="0.00" step="0.01">
+      <span class="num-unit">μC</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(9, 1.414, 0.05, 'q² = F·r²/k = (1.8 × 0.01) / 9×10⁹ = 2×10⁻¹² → q = √(2×10⁻¹²) ≈ 1.414×10⁻⁶ C ≈ 1.41 μC')">▶ Verificar</button>
+    <div class="feedback" id="fb-9"></div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="q-card" id="card-10">
+    <div class="q-meta"><span class="q-num">10</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Despeje</span></div>
+    <div class="q-text">Dos cargas <span class="formula">q₁ = q₂ = +5 μC</span> se repelen con <span class="formula">F = 0.45 N</span>. ¿A qué distancia <b>r</b> se encuentran?</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q10" placeholder="0.00" step="0.001">
+      <span class="num-unit">m</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(10, 0.707, 0.02, 'r² = k·q²/F = (9×10⁹ × 25×10⁻¹²) / 0.45 = 0.5 → r = √0.5 ≈ 0.707 m')">▶ Verificar</button>
+    <div class="feedback" id="fb-10"></div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="q-card" id="card-11">
+    <div class="q-meta"><span class="q-num">11</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Despeje</span></div>
+    <div class="q-text">La fuerza entre <span class="formula">q₁ = +3 μC</span> y una carga desconocida <span class="formula">q₂</span> separadas <span class="formula">r = 0.3 m</span> es de <span class="formula">F = 0.9 N</span>. Halla <b>q₂</b> en μC.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q11" placeholder="0.0" step="0.1">
+      <span class="num-unit">μC</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(11, 3, 0.1, 'q₂ = F·r² / (k·q₁) = (0.9 × 0.09) / (9×10⁹ × 3×10⁻⁶) = 0.081 / 27000 = 3×10⁻⁶ C = 3 μC')">▶ Verificar</button>
+    <div class="feedback" id="fb-11"></div>
+  </div>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin:1.5rem 0 1rem;padding-left:4px;">▸ Análisis de variación de fuerza</div>
+
+  <!-- Q12 -->
+  <div class="q-card" id="card-12">
+    <div class="q-meta"><span class="q-num">12</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Variación</span></div>
+    <div class="q-text">Dos cargas experimentan una fuerza de <span class="formula">12 N</span>. ¿Cuál será la nueva fuerza si la distancia se <b>duplica</b>?</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q12" placeholder="0.0" step="0.1">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(12, 3, 0.1, 'F\' = F/(2)² = 12/4 = 3 N. Al duplicar r, la fuerza disminuye 4 veces.')">▶ Verificar</button>
+    <div class="feedback" id="fb-12"></div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="q-card" id="card-13">
+    <div class="q-meta"><span class="q-num">13</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Variación</span></div>
+    <div class="q-text">Dos cargas se atraen con <span class="formula">F = 6 N</span>. Si una carga se <b>triplica</b> y la distancia se reduce a la <b>mitad</b>, ¿cuál es la nueva fuerza?</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q13" placeholder="0.0" step="1">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(13, 72, 0.5, 'F\' = k·(3q₁)·q₂/(r/2)² = 3·4·F₀ = 12 × 6 = 72 N')">▶ Verificar</button>
+    <div class="feedback" id="fb-13"></div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="q-card" id="card-14">
+    <div class="q-meta"><span class="q-num">14</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Variación</span></div>
+    <div class="q-text">Se tiene fuerza <span class="formula">F₀</span>. Si <b>ambas cargas se duplican</b> y la distancia se <b>triplica</b>, la nueva fuerza F' es una fracción de F₀. Ingresa el numerador de esa fracción (F' = <b>?</b>/9 · F₀).</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q14" placeholder="0" step="1">
+      <span class="num-unit">/9 × F₀</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(14, 4, 0.1, 'F\' = k·(2q₁)(2q₂)/(3r)² = 4F₀/9. El numerador es 4. F\' < F₀ (la fuerza disminuye).')">▶ Verificar</button>
+    <div class="feedback" id="fb-14"></div>
+  </div>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin:1.5rem 0 1rem;padding-left:4px;">▸ Fuerza neta y superposición</div>
+
+  <!-- Q15 -->
+  <div class="q-card" id="card-15">
+    <div class="q-meta"><span class="q-num">15</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Superposición</span></div>
+    <div class="q-text">Tres cargas en línea: <span class="formula">q₁=+2μC</span> en x=0, <span class="formula">q₂=−3μC</span> en x=0.3m, <span class="formula">q₃=+2μC</span> en x=0.6m. Calcula la fuerza neta sobre q₂ en N.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q15" placeholder="0" step="0.1">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(15, 0, 0.01, 'F₁₂ = 0.6 N (←) | F₂₃ = 0.6 N (→). Por simetría las fuerzas son iguales y opuestas → Fuerza neta = 0 N. q₂ está en equilibrio.')">▶ Verificar</button>
+    <div class="feedback" id="fb-15"></div>
+  </div>
+
+  <!-- Q16 -->
+  <div class="q-card" id="card-16">
+    <div class="q-meta"><span class="q-num">16</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Superposición</span></div>
+    <div class="q-text"><span class="formula">q₁=+4μC</span> en x=0, <span class="formula">q₃=−4μC</span> en x=0.4m, <span class="formula">q₂=+1μC</span> en x=0.2m (punto medio). Calcula la fuerza neta sobre q₂ en N.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q16" placeholder="0.0" step="0.1">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(16, 1.8, 0.05, 'F₁₂ = 0.9 N (→ repulsiva) | F₂₃ = 0.9 N (→ atractiva) → Fuerza neta = 1.8 N hacia la derecha (+x)')">▶ Verificar</button>
+    <div class="feedback" id="fb-16"></div>
+  </div>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin:1.5rem 0 1rem;padding-left:4px;">▸ Cargas subatómicas y contexto real</div>
+
+  <!-- Q17 -->
+  <div class="q-card" id="card-17">
+    <div class="q-meta"><span class="q-num">17</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Contexto real</span></div>
+    <div class="q-text">Calcula la fuerza eléctrica entre el protón y el electrón del átomo de hidrógeno. <span class="formula">r = 5.3×10⁻¹¹ m</span>, <span class="formula">e = 1.6×10⁻¹⁹ C</span>. Ingresa en notación: valor × 10⁻⁸ N.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q17" placeholder="0.00" step="0.01">
+      <span class="num-unit">× 10⁻⁸ N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(17, 8.2, 0.3, 'F = (9×10⁹ × (1.6×10⁻¹⁹)²) / (5.3×10⁻¹¹)² = 23.04×10⁻²⁹ / 28.09×10⁻²² ≈ 8.2×10⁻⁸ N — Atractiva')">▶ Verificar</button>
+    <div class="feedback" id="fb-17"></div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="q-card" id="card-18">
+    <div class="q-meta"><span class="q-num">18</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Contexto real</span></div>
+    <div class="q-text">Esferas con <span class="formula">q₁=+12μC</span> y <span class="formula">q₂=−4μC</span> se tocan (cargas se redistribuyen igualmente) y luego se separan a <span class="formula">r=0.3 m</span>. Calcula la nueva fuerza.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q18" placeholder="0.0" step="0.01">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(18, 1.6, 0.05, 'q_total = 12+(-4) = 8μC → cada esfera queda con +4μC. F = (9×10⁹ × 4×10⁻⁶ × 4×10⁻⁶) / (0.3)² = 144×10⁻³ / 0.09 ≈ 1.6 N — Repulsiva')">▶ Verificar</button>
+    <div class="feedback" id="fb-18"></div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="q-card" id="card-19">
+    <div class="q-meta"><span class="q-num">19</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Análisis</span></div>
+    <div class="q-text">Un estudiante afirma: "Si duplico q₁ y duplico r, la fuerza no cambia." La fuerza resultante sería F' = <b>?</b>/2 de F original. ¿Qué fracción del denominador corresponde?</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q19" placeholder="0" step="1">
+      <span class="num-unit">(denominador)</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(19, 2, 0.1, 'F\' = k·(2q₁)·q₂/(2r)² = 2k·q₁·q₂/4r² = F/2. El estudiante NO tiene razón. F se reduce a la mitad. Denominador = 2.')">▶ Verificar</button>
+    <div class="feedback" id="fb-19"></div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="q-card" id="card-20">
+    <div class="q-meta"><span class="q-num">20</span><span class="q-pts">1 pt</span><span class="q-type-badge type-calc">Superposición</span></div>
+    <div class="q-text"><span class="formula">q₁=+5μC</span> en x=0, <span class="formula">q₂=+5μC</span> en x=0.2m, <span class="formula">q₃=−2μC</span> en el punto medio (x=0.1m). Calcula la fuerza neta que ejercen q₁ y q₂ sobre q₃ en N.</div>
+    <div class="num-wrap">
+      <input class="num-input" type="number" id="q20" placeholder="0" step="0.1">
+      <span class="num-unit">N</span>
+    </div>
+    <button class="btn-check" onclick="checkNum(20, 0, 0.01, 'F₁₃ = 9 N (←) | F₂₃ = 9 N (→). Por simetría (cargas iguales, misma distancia) las fuerzas se cancelan → Fuerza neta = 0 N.')">▶ Verificar</button>
+    <div class="feedback" id="fb-20"></div>
+  </div>
+
+</div>
+
+<!-- SUBMIT -->
+<div class="submit-wrap">
+  <button class="btn-submit" onclick="submitAll()">⚡ Finalizar y ver calificación</button>
+</div>
+
+<!-- RESULT -->
+<div class="result-panel" id="resultPanel">
+  <div class="result-card">
+    <div class="result-label">Calificación final</div>
+    <div class="result-grade" id="finalGrade">—</div>
+    <div class="result-label" id="finalLabel"></div>
+    <div class="result-bar"><div class="result-bar-fill" id="resultFill"></div></div>
+    <div style="color:var(--text-dim);font-size:0.85rem;margin-top:0.5rem;" id="resultDetail"></div>
+    <div class="result-code" id="resultCode"></div>
+    <div style="color:var(--text-dim);font-size:0.75rem;margin-top:0.5rem;">Muestra este código a tu profesor</div>
+  </div>
+</div>
+
+<!-- TEACHER PANEL -->
+<div class="teacher-section">
+  <button class="teacher-toggle" onclick="toggleTeacher()">🔒 Panel Docente</button>
+  <div class="teacher-panel" id="teacherPanel">
+    <div class="teacher-pin">
+      <label>// PIN Docente</label>
+      <input type="password" id="teacherPin" placeholder="••••" maxlength="4">
+      <button class="btn-unlock" onclick="unlockTeacher()">Ingresar</button>
+      <span style="font-size:0.75rem;color:var(--text-dim);">PIN: 2025</span>
+    </div>
+    <div class="grades-table-wrap" id="gradesWrap">
+      <table class="grades-table" id="gradesTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Estudiante</th>
+            <th>Puntaje</th>
+            <th>Nota (0–5)</th>
+            <th>Desempeño</th>
+            <th>Fecha/Hora</th>
+          </tr>
+        </thead>
+        <tbody id="gradesTbody">
+          <tr><td colspan="6" class="empty-table">Ningún estudiante ha enviado resultados aún.</td></tr>
+        </tbody>
+      </table>
+      <button class="btn-download" onclick="downloadCSV()">⬇ Descargar tabla CSV</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+var answered  = {};   // qNum -> { correct: bool, answer: any }
+var score     = 0;
+var submitted = false;
+
+var TEACHER_PIN = '2025';
+var grades = JSON.parse(localStorage.getItem('coulomb_grades') || '[]');
+
+// Theory ideal keywords per question
+var theoryKeywords = {
+  1: ['fuerza','carga','distancia','proporcional','cuadrado','k','r²'],
+  2: ['mismo','signo','opuesto','atract','repuls','positiv','negativ'],
+  3: ['nueve','1/9','triplica','cuadrado','disminuye','reduce'],
+  4: ['inverso','cuadrado','semejanza','diferencia','atract','masa','carga','gravitac']
+};
+
+// ── THEORY CHECK ───────────────────────────────────────────────
+function checkTheory(n) {
+  if (answered[n]) return;
+  var val = document.getElementById('q' + n).value.trim().toLowerCase();
+  if (val.length < 20) {
+    showFeedback(n, false, 'Tu respuesta es muy corta. Desarrolla más tu explicación.');
+    return;
+  }
+  var keys = theoryKeywords[n];
+  var hits = keys.filter(function(k){ return val.indexOf(k) !== -1; }).length;
+  var ok = hits >= Math.ceil(keys.length * 0.4);
+
+  var fb = {
+    1: 'La Ley de Coulomb establece que F es proporcional al producto de las cargas e inversamente proporcional a r². Variables: F (fuerza en N), k (9×10⁹), q₁ y q₂ (cargas en C), r (distancia en m).',
+    2: 'La fuerza es repulsiva si las cargas tienen el mismo signo (++, −−), y atractiva si tienen signos opuestos (+−). Depende del signo de las cargas.',
+    3: 'Si r se triplica → r\'=3r → F\'= F/(3)² = F/9. La fuerza disminuye a 1/9 de su valor original porque r está elevado al cuadrado.',
+    4: 'Semejanzas: 1) Ambas son proporcionales al producto de dos propiedades (cargas/masas). 2) Ambas son inversamente proporcionales a r². Diferencia: Coulomb puede ser atractiva o repulsiva; la gravedad es siempre atractiva.'
+  };
+
+  answered[n] = { correct: ok };
+  if (ok) score++;
+  updateScore();
+  showFeedback(n, ok, fb[n]);
+  document.getElementById('q' + n).disabled = true;
+  document.querySelector('#card-' + n + ' .btn-check').disabled = true;
+  document.getElementById('card-' + n).classList.add(ok ? 'correct' : 'wrong');
+  if (ok) spawnParticles(document.querySelector('#card-' + n + ' .btn-check'));
+}
+
+// ── NUMERIC CHECK ──────────────────────────────────────────────
+function checkNum(n, correct, tolerance, explanation) {
+  if (answered[n]) return;
+  var raw = document.getElementById('q' + n).value;
+  if (raw === '' || raw === null) {
+    showFeedback(n, false, 'Ingresa un valor numérico antes de verificar.');
+    return;
+  }
+  var val = parseFloat(raw);
+  var ok = Math.abs(val - correct) <= tolerance;
+
+  answered[n] = { correct: ok };
+  if (ok) score++;
+  updateScore();
+
+  var msg = ok
+    ? '✓ ¡Correcto! Procedimiento: ' + explanation
+    : '✗ Incorrecto. Tu respuesta: ' + val + '. Respuesta correcta: ' + correct + '. Procedimiento: ' + explanation;
+
+  showFeedback(n, ok, msg);
+  document.getElementById('q' + n).disabled = true;
+  document.querySelector('#card-' + n + ' .btn-check').disabled = true;
+  document.getElementById('card-' + n).classList.add(ok ? 'correct' : 'wrong');
+  if (ok) spawnParticles(document.querySelector('#card-' + n + ' .btn-check'));
+}
+
+// ── FEEDBACK ───────────────────────────────────────────────────
+function showFeedback(n, ok, text) {
+  var el = document.getElementById('fb-' + n);
+  el.className = 'feedback show ' + (ok ? 'ok' : 'err');
+  el.innerHTML = '<span class="step">' + text + '</span>';
+}
+
+// ── SCORE / PROGRESS ───────────────────────────────────────────
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent = score;
+  var total = Object.keys(answered).length;
+  var pct = Math.round(total / 20 * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = total + ' de 20 respondidas';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────────
+function submitAll() {
+  var name = document.getElementById('studentName').value.trim() || 'Estudiante';
+  var nota5 = (score / 20 * 5).toFixed(2);
+  var pct = Math.round(score / 20 * 100);
+
+  var panel = document.getElementById('resultPanel');
+  panel.classList.add('show');
+  document.getElementById('finalGrade').textContent = nota5 + ' / 5.0';
+  document.getElementById('finalLabel').textContent = score + ' de 20 puntos (' + pct + '%)';
+  document.getElementById('resultDetail').textContent = getDesempeno(parseFloat(nota5));
+
+  setTimeout(function(){
+    document.getElementById('resultFill').style.width = pct + '%';
+  }, 100);
+
+  // Code
+  var ts = new Date().toISOString().slice(0,16).replace('T',' ');
+  var code = btoa(name.substring(0,10) + '|' + score + '|' + nota5 + '|' + ts);
+  document.getElementById('resultCode').innerHTML = '<b>Código:</b> ' + code.substring(0, 32);
+
+  // Save grade
+  var entry = { name: name, score: score, nota: nota5, ts: ts };
+  grades.push(entry);
+  localStorage.setItem('coulomb_grades', JSON.stringify(grades));
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  submitted = true;
+}
+
+function getDesempeno(n) {
+  if (n >= 4.5) return '🏆 Excelente — Dominio sobresaliente';
+  if (n >= 4.0) return '⭐ Bueno — Dominio satisfactorio';
+  if (n >= 3.0) return '📘 Básico — Cumple los mínimos';
+  return '⚠ Bajo — Necesita refuerzo';
+}
+
+// ── TEACHER PANEL ──────────────────────────────────────────────
+function toggleTeacher() {
+  var p = document.getElementById('teacherPanel');
+  p.classList.toggle('show');
+}
+
+function unlockTeacher() {
+  var pin = document.getElementById('teacherPin').value;
+  if (pin !== TEACHER_PIN) {
+    alert('PIN incorrecto.'); return;
+  }
+  document.getElementById('gradesWrap').classList.add('show');
+  renderGrades();
+}
+
+function renderGrades() {
+  var tbody = document.getElementById('gradesTbody');
+  if (grades.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-table">Ningún estudiante ha enviado resultados aún.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = grades.map(function(g, i) {
+    var n = parseFloat(g.nota);
+    var cls = n >= 4 ? 'grade-high' : n >= 3 ? 'grade-mid' : 'grade-low';
+    return '<tr>' +
+      '<td style="color:var(--text-dim)">' + (i+1) + '</td>' +
+      '<td><b>' + escapeHtml(g.name) + '</b></td>' +
+      '<td style="font-family:\'Space Mono\',monospace">' + g.score + ' / 20</td>' +
+      '<td><span class="grade-chip ' + cls + '">' + g.nota + '</span></td>' +
+      '<td style="color:var(--text-dim);font-size:0.8rem">' + getDesempeno(n) + '</td>' +
+      '<td style="color:var(--text-dim);font-size:0.8rem;font-family:\'Space Mono\',monospace">' + g.ts + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function downloadCSV() {
+  var rows = [['#','Estudiante','Puntaje','Nota (0-5)','Desempeño','Fecha']];
+  grades.forEach(function(g, i) {
+    rows.push([i+1, g.name, g.score + '/20', g.nota, getDesempeno(parseFloat(g.nota)), g.ts]);
+  });
+  var csv = rows.map(function(r){ return r.join(','); }).join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'notas_ley_coulomb.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── PARTICLES ──────────────────────────────────────────────────
+function spawnParticles(el) {
+  var rect = el.getBoundingClientRect();
+  var colors = ['#00d4ff','#7c3aed','#10b981','#f59e0b'];
+  for (var i = 0; i < 6; i++) {
+    (function(){
+      var p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = (rect.left + Math.random() * rect.width) + 'px';
+      p.style.top  = (rect.top + window.scrollY + Math.random() * 10) + 'px';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(p);
+      setTimeout(function(){ p.remove(); }, 1000);
+    })();
+  }
+}
+</script>
+</body>
+</html>
